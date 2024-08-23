@@ -47,12 +47,11 @@ const Board = () => {
 
         const changeConfig = (color, size) => {
 
+            
             context.strokeStyle = color;
             context.lineWidth = size;
 
         }
-
-        
 
         const handleChangeConfig = (config) => {
             changeConfig(config.color, config.size);
@@ -60,6 +59,11 @@ const Board = () => {
 
         changeConfig(color, size);
         socket.on('changeConfig',handleChangeConfig);
+
+        return () => {
+            socket.off('changeConfig',handleChangeConfig);
+
+        }
 
     },[color,size])
 
@@ -120,22 +124,19 @@ const Board = () => {
         canvas.addEventListener('mousemove',handleMouseMove);
         canvas.addEventListener('mouseup',handleMouseUp);
 
-        socket.on("connect", () => {
-            console.log(socket.id); // x8WIv7-mJelg7on_ALbx
-          });
-
+        
           socket.on('beginPath',handleBeginPath)
           socket.on('drawLine',handleDrawLine);
           
-          socket.on("disconnect", () => {
-            console.log(socket.id); // undefined
-          });
-        
+          
 
         return () => {
             canvas.removeEventListener('mousedown',handleMouseDown);
             canvas.removeEventListener('mousemove',handleMouseMove);
             canvas.removeEventListener('mouseup',handleMouseUp);
+
+            socket.off('beginPath',handleBeginPath)
+          socket.off('drawLine',handleDrawLine);
         }
 
     },[])

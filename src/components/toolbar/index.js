@@ -4,6 +4,7 @@ import { useSelector,useDispatch } from 'react-redux';
 import { changeColor,changeSize } from '@/slice/toolboxSlice';
 import cx from 'classnames';
 import { socket } from "@/socket";
+import { useEffect } from 'react';
 
 
 const Toolbar = () => {
@@ -20,13 +21,17 @@ const Toolbar = () => {
 
     const updateSize = (e) => {
         dispatch(changeSize({item:activeMenuItem,size:e.target.value}));
-        socket.emit('changeConfig',{color, size: e.target.value});
     }
 
     const updateColor = (newColor) => {
         dispatch(changeColor({item:activeMenuItem,color:newColor}));
-        socket.emit('changeConfig',{size, color: newColor});
     }
+
+    
+
+    useEffect(() => {
+        socket.emit('changeConfig',{color,size});
+    },[color,size])
 
     return (
         <div className={styles.toolboxContainer}>

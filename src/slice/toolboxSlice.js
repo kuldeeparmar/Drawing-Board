@@ -1,6 +1,7 @@
 import { MENU_ITEMS,COLORS } from "@/constant";
 import { createSlice } from "@reduxjs/toolkit";
 import { act } from "react";
+import { socket } from "@/socket";
 
 const initialState = {
     [MENU_ITEMS.PENCIL] : {
@@ -22,7 +23,6 @@ const toolboxSlice = createSlice({
     reducers: {
         changeColor: (state,action) => {
             state[action.payload.item].color = action.payload.color;
-
         },
         changeSize: (state,action) => {
             state[action.payload.item].size = action.payload.size;
