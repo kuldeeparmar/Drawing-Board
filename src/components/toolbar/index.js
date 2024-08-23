@@ -2,7 +2,8 @@ import styles from './index.module.css'
 import { COLORS, MENU_ITEMS } from '@/constant';
 import { useSelector,useDispatch } from 'react-redux';
 import { changeColor,changeSize } from '@/slice/toolboxSlice';
-import cx from 'classnames'
+import cx from 'classnames';
+
 
 
 const Toolbar = () => {
@@ -15,7 +16,7 @@ const Toolbar = () => {
 
     const showBruseToolbox = activeMenuItem === MENU_ITEMS.ERASER;
 
-    const {color} = useSelector((state) => state.toolbar[activeMenuItem]);
+    const {color,size} = useSelector((state) => state.toolbar[activeMenuItem]);
 
     const updateSize = (e) => {
         dispatch(changeSize({item:activeMenuItem,size:e.target.value}));
@@ -42,7 +43,7 @@ const Toolbar = () => {
             <div className={styles.toolItem}>
                 <h4 className={styles.toolText}>Brush Size {activeMenuItem}</h4>
                 <div className={styles.itemContainer}>
-                    <input type="range" min={1} max={10} step={1} onChange={updateSize}/>
+                    <input type="range" min={1} max={10} step={1} onChange={updateSize} value={size}/>
                 </div>
             </div>
 
