@@ -2,6 +2,7 @@ import { MENU_ITEMS } from "@/constant";
 import {useRef,useEffect,useLayoutEffect} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { menuItemClick,actionItemClick} from "@/slice/menuSlice"
+import { socket } from "@/socket";
 
 const Board = () => {
 
@@ -13,14 +14,13 @@ const Board = () => {
     const showRef = useRef(false);
     const {color,size} = useSelector((state) => state.toolbar[activeMenuItem]);
 
-    //const strokeCoordinate = useRef([]);
-
     useEffect(() => {
         if(!canvasRef.current) return
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
 
         if(actionMenuItem === MENU_ITEMS.DOWNLOAD) {
+            canvas.willReadFrequently = true;
             const URL = canvas.toDataURL();
             const anchor = document.createElement('a');
             anchor.href = URL;
@@ -44,13 +44,21 @@ const Board = () => {
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
 
-        const changeConfig = () => {
+        const changeConfig = (color, size) => {
 
             context.strokeStyle = color;
             context.lineWidth = size;
 
         }
-        changeConfig();
+
+        
+
+        const handleChangeConfig = (config) => {
+            changeConfig(config.color, config.size);
+        }
+
+        changeConfig(color, size);
+        socket.on('changeConfig',handleChangeConfig);
 
     },[color,size])
 
@@ -63,7 +71,8 @@ const Board = () => {
         canvas.height = window.innerHeight;
         context.fillStyle = 'white';
         context.fillRect(0, 0, canvas.width, canvas.height);
-        drawHistory.current.push(context.getImageData(0, 0, canvas.width, canvas.height));
+       
+        
         
 
         const beginPath = (x, y) => {
@@ -79,49 +88,54 @@ const Board = () => {
         const handleMouseDown = (e) => {
             showRef.current = true;
             beginPath(e.clientX,e.clientY);
-            // console.log('Down')
-            // if(strokeCoordinate.length < 2) {
-            //     strokeCoordinate.current.push(e.clientX);
-            //     strokeCoordinate.current.push(e.clientY);
-            // }
+            socket.emit('beginPath',{x: e.clientX,y: e.clientY})
         }
 
         const handleMouseMove = (e) => {
             if(!showRef.current) return
            drawLine(e.clientX,e.clientY);
+           socket.emit('drawLine',{x: e.clientX,y: e.clientY})
 
         }
 
         const handleMouseUp = (e) => {
             showRef.current = false;
-            // console.log('Up')
-
-            // if(strokeCoordinate.current.length < 4 && strokeCoordinate.current.length > 0) {
-            //     strokeCoordinate.current.push(e.clientX);
-            //     strokeCoordinate.current.push(e.clientY);
-            // }
-            // console.log(strokeCoordinate.current.length);
-
+            canvas.willReadFrequently = true;
             const image = context.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // if(drawHistory.current.length > 0 && image != drawHistory.current[historyPointer.current]) {
                 drawHistory.current.push(image);
                 historyPointer.current = drawHistory.current.length - 1;
                
-            //}
+            
+        }
 
-            //strokeCoordinate.current = [];
+        const handleBeginPath = (arg) => {
+            beginPath(arg.x,arg.y);
+        }
+
+        const handleDrawLine = (arg) => {
+            drawLine(arg.x,arg.y);
         }
 
         canvas.addEventListener('mousedown',handleMouseDown);
         canvas.addEventListener('mousemove',handleMouseMove);
         canvas.addEventListener('mouseup',handleMouseUp);
+
+        socket.on("connect", () => {
+            console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+          });
+
+          socket.on('beginPath',handleBeginPath)
+          socket.on('drawLine',handleDrawLine);
+          
+          socket.on("disconnect", () => {
+            console.log(socket.id); // undefined
+          });
         
 
         return () => {
-            canvas.removeEventListener('mouseDown',handleMouseDown);
+            canvas.removeEventListener('mousedown',handleMouseDown);
             canvas.removeEventListener('mousemove',handleMouseMove);
-            canvas.removeEventListener('mouseUp',handleMouseUp);
+            canvas.removeEventListener('mouseup',handleMouseUp);
         }
 
     },[])
