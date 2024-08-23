@@ -20,7 +20,6 @@ const Board = () => {
         const context = canvas.getContext("2d");
 
         if(actionMenuItem === MENU_ITEMS.DOWNLOAD) {
-            canvas.willReadFrequently = true;
             const URL = canvas.toDataURL();
             const anchor = document.createElement('a');
             anchor.href = URL;
@@ -29,8 +28,10 @@ const Board = () => {
         } else if(actionMenuItem === MENU_ITEMS.UNDO  || actionMenuItem === MENU_ITEMS.REDO) {
             if(historyPointer.current > 0 && actionMenuItem === MENU_ITEMS.UNDO) historyPointer.current -= 1;
             if(historyPointer.current < drawHistory.current.length -1 && actionMenuItem === MENU_ITEMS.REDO) historyPointer.current += 1;
-            const image = drawHistory.current[historyPointer.current];
-            context.putImageData(image,0,0);
+            if(drawHistory.current.length > 0) {
+                const image = drawHistory.current[historyPointer.current];
+                context.putImageData(image,0,0);
+            }
 
         }
 
@@ -100,7 +101,6 @@ const Board = () => {
 
         const handleMouseUp = (e) => {
             showRef.current = false;
-            canvas.willReadFrequently = true;
             const image = context.getImageData(0, 0, canvas.width, canvas.height);
                 drawHistory.current.push(image);
                 historyPointer.current = drawHistory.current.length - 1;
